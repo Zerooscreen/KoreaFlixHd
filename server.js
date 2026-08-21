@@ -5,9 +5,60 @@ const { renderLayout, renderHome, renderDetail, renderActor, renderSearch, rende
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const DOMAIN = 'https://koreaflixhd.up.railway.app';
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Sitemap.xml Route
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const [trending, popular] = await Promise.all([
+      tmdb('/trending/movie/week'),
+      tmdb('/movie/popular')
+    ]);
+
+    const movies = [...(trending.results || []), ...(popular.results || [])];
+    const uniqueMovies = Array.from(new Map(movies.map(m => [m.id, m])).values());
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    
+    // Homepage
+    xml += `  <url>\n`;
+    xml += `    <loc>${DOMAIN}/</loc>\n`;
+    xml += `    <changefreq>daily</changefreq>\n`;
+    xml += `    <priority>1.0</priority>\n`;
+    xml += `  </url>\n`;
+
+    // Movie Detail Pages
+    uniqueMovies.forEach(m => {
+      xml += `  <url>\n`;
+      xml += `    <loc>${DOMAIN}/movie/${m.id}</loc>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += `  </url>\n`;
+    });
+
+    xml += `</urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    console.error('Sitemap Error:', err);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// Robots.txt Route
+app.get('/robots.txt', (req, res) => {
+  const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${DOMAIN}/sitemap.xml`;
+  res.header('Content-Type', 'text/plain');
+  res.send(robots);
+});
 
 // Halaman Utama (Home)
 app.get('/', async (req, res) => {
