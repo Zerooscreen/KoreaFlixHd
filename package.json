@@ -1,14 +1,13 @@
 {
-  "name": "KoreaFlixHd",
-  "version": "2.0.0",
-  "private": true,
-  "engines": {
-    "node": ">=18"
-  },
+  "name": "koreaflixhd",
+  "version": "1.0.0",
+  "description": "KoreaFlixHd - Movie and TV Streaming Info",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.9"
   }
 }
