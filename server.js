@@ -24,7 +24,7 @@ app.get('/', async (req, res) => {
       topRated: topRated.results || []
     });
 
-    res.send(renderLayout('한국 영화 스트리밍 - KoreaFlixHd', content));
+    res.send(renderLayout('KoreaFlixHd', content));
   } catch (err) {
     console.error('Home Error:', err);
     res.status(500).send('서버 오류가 발생했습니다.');
@@ -95,9 +95,13 @@ app.get('/actor/:id', async (req, res) => {
       tmdb(`/person/${actorId}/movie_credits`)
     ]);
 
+    const uniqueMovies = Array.from(
+      new Map((movieCredits.cast || []).map(m => [m.id, m])).values()
+    );
+
     const content = renderActor({
       person,
-      movies: movieCredits.cast || []
+      movies: uniqueMovies
     });
 
     res.send(renderLayout(person.name || '배우 프로필', content));
