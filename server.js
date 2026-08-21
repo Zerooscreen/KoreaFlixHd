@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { tmdb, img, slugify } = require('./lib/tmdb');
-const { renderLayout, renderHome, renderDetail, renderActor, renderSearch } = require('./render');
+const { renderLayout, renderHome, renderDetail, renderActor, renderSearch } = require('./lib/render');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
