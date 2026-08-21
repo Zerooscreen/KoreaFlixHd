@@ -137,24 +137,16 @@ app.get('/watch/:id', async (req, res) => {
   }
 });
 
-// Halaman Detail Aktor (Lengkap dengan Fallback Biografi)
+// Halaman Detail Aktor (Normal kembali & aman)
 app.get('/actor/:id', async (req, res) => {
   try {
     const actorId = req.params.id;
     
-    // Mengambil data dengan bahasa Korea (ko-KR) dan Inggris (en-US) langsung dari TMDB API
-    const [personRes, personEnRes, movieCredits] = await Promise.all([
-      tmdb(`/person/${actorId}`, { language: 'ko-KR' }).catch(() => null),
-      tmdb(`/person/${actorId}`, { language: 'en-US' }).catch(() => null),
+    // Menggunakan pemanggilan tmdb standar yang sudah terbukti berhasil memuat foto & nama
+    const [person, movieCredits] = await Promise.all([
+      tmdb(`/person/${actorId}`),
       tmdb(`/person/${actorId}/movie_credits`)
     ]);
-
-    let person = personRes || {};
-    
-    // Jika biografi bahasa Korea kosong atau tidak ada, gunakan biografi bahasa Inggris
-    if ((!person.biography || person.biography.trim() === '') && personEnRes && personEnRes.biography) {
-      person.biography = personEnRes.biography;
-    }
 
     const uniqueMovies = Array.from(
       new Map((movieCredits.cast || []).map(m => [m.id, m])).values()
