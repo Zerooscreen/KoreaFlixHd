@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { tmdb, img, slugify } = require('./lib/tmdb');
-const { renderLayout, renderHome, renderDetail, renderActor, renderSearch } = require('./lib/render');
+const { renderLayout, renderHome, renderDetail, renderActor, renderSearch, renderCountdown } = require('./lib/render');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -24,7 +24,7 @@ app.get('/', async (req, res) => {
       topRated: topRated.results || []
     });
 
-    res.send(renderLayout('KoreaFlixHd - Home', content));
+    res.send(renderLayout('한국 영화 스트리밍 - KoreaFlixHd', content));
   } catch (err) {
     console.error('Home Error:', err);
     res.status(500).send('서버 오류가 발생했습니다.');
@@ -41,7 +41,7 @@ app.get('/search', async (req, res) => {
       results = searchRes.results || [];
     }
     const content = renderSearch(query, results);
-    res.send(renderLayout(`Pencarian: ${query}`, content));
+    res.send(renderLayout(`검색: ${query}`, content));
   } catch (err) {
     console.error('Search Error:', err);
     res.status(500).send('서버 오류가 발생했습니다.');
@@ -66,10 +66,23 @@ app.get('/movie/:id', async (req, res) => {
       similar: similar.results || []
     });
 
-    res.send(renderLayout(movie.title || 'Detail Film', content));
+    res.send(renderLayout(movie.title || '영화 상세', content));
   } catch (err) {
     console.error('Movie Detail Error:', err);
-    res.status(404).send('Film tidak ditemukan atau terjadi kesalahan server.');
+    res.status(404).send('영화를 찾을 수 없습니다.');
+  }
+});
+
+// Halaman Hitung Mundur (Watch Countdown)
+app.get('/watch/:id', async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const movie = await tmdb(`/movie/${movieId}`);
+    const content = renderCountdown(movie.title || '재생 준비 중');
+    res.send(renderLayout('시청 준비 중', content));
+  } catch (err) {
+    console.error('Watch Countdown Error:', err);
+    res.redirect('https://moviegate.bolt.host/ko?');
   }
 });
 
@@ -87,10 +100,10 @@ app.get('/actor/:id', async (req, res) => {
       movies: movieCredits.cast || []
     });
 
-    res.send(renderLayout(person.name || 'Profil Aktor', content));
+    res.send(renderLayout(person.name || '배우 프로필', content));
   } catch (err) {
     console.error('Actor Detail Error:', err);
-    res.status(404).send('Aktor tidak ditemukan.');
+    res.status(404).send('배우 정보를 찾을 수 없습니다.');
   }
 });
 
